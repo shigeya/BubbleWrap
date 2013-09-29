@@ -132,6 +132,14 @@ Cache policy: #{@cache_policy}, response: #{@response.inspect} >"
     call_delegator_with_response
   end
 
+  # XXX KLUDGE: accept even self signed cert (I know what I'm doing here)
+  def connection(connection, canAuthenticateAgainstProtectionSpace:space)
+    if space.authenticationMethod == NSURLAuthenticationMethodServerTrust
+      return true
+    end
+    false
+  end
+
   def connection(connection, didReceiveAuthenticationChallenge:challenge)
     if (challenge.previousFailureCount == 0)
       if credentials[:username].to_s.empty? && credentials[:password].to_s.empty?
