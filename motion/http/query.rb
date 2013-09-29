@@ -132,12 +132,16 @@ Cache policy: #{@cache_policy}, response: #{@response.inspect} >"
     call_delegator_with_response
   end
 
+
   # XXX KLUDGE: accept even self signed cert (I know what I'm doing here)
-  def connection(connection, canAuthenticateAgainstProtectionSpace:space)
-    if space.authenticationMethod == NSURLAuthenticationMethodServerTrust
-      return true
+  # Should check chain of trust to handle
+  def connection(connection, willSendRequestForAuthenticationChallenge:challenge)
+    credential = NSURLCredential.credentialForTrust(true)
+    if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust
+      challenge.sender.useCredential(credential, forAuthenticationChallenge:challenge)
+      return
     end
-    false
+    challenge.sender.cancelAuthenticationChallenge(challenge)
   end
 
   def connection(connection, didReceiveAuthenticationChallenge:challenge)
